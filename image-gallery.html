@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Wander — Photo Gallery</title>
+<style>
+  :root{
+    --bg:#12181a; --panel:#1a2226; --ink:#eef2f1; --muted:#9fb0ac;
+    --accent:#e8a33d; --line:#2a3538;
+    box-sizing:border-box;
+    padding-top:env(safe-area-inset-top,0px);
+    padding-bottom:env(safe-area-inset-bottom,0px);
+  }
+  html{scroll-padding-top:env(safe-area-inset-top,0px);}
+  *{box-sizing:border-box;}
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font-family:Georgia,'Times New Roman',serif;
+  }
+  header{
+    padding:2.4rem 1.5rem 1.2rem; text-align:left; max-width:900px; margin:0 auto;
+  }
+  h1{
+    font-size:2rem; margin:0 0 .3rem; font-weight:400; letter-spacing:.5px;
+  }
+  header p{
+    color:var(--muted); font-family:Helvetica,Arial,sans-serif; font-size:.95rem; margin:0; max-width:60ch;
+  }
+  .filters{
+    display:flex; gap:.5rem; padding:0 1.5rem 1.5rem; max-width:900px; margin:0 auto;
+    flex-wrap:wrap; font-family:Helvetica,Arial,sans-serif;
+  }
+  .filters button{
+    background:none; border:1px solid var(--line); color:var(--muted);
+    padding:.4rem 1rem; border-radius:20px; font-size:.85rem; cursor:pointer;
+    transition:border-color .2s, color .2s;
+  }
+  .filters button:hover, .filters button.active{
+    border-color:var(--accent); color:var(--ink);
+  }
+  .filters button:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
+  .grid{
+    display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr));
+    gap:14px; padding:0 1.5rem 3rem; max-width:1100px; margin:0 auto;
+  }
+  .card{
+    position:relative; aspect-ratio:4/3; border-radius:6px; overflow:hidden;
+    cursor:pointer; border:1px solid var(--line);
+  }
+  .card svg{ width:100%; height:100%; display:block; transition:transform .35s ease; }
+  .card:hover svg{ transform:scale(1.06); }
+  .card:focus-visible{ outline:2px solid var(--accent); outline-offset:3px; }
+  .cap{
+    position:absolute; left:0; right:0; bottom:0; padding:.5rem .7rem;
+    background:linear-gradient(transparent, rgba(0,0,0,.55));
+    font-family:Helvetica,Arial,sans-serif; font-size:.78rem; color:#f2f2f2;
+    opacity:0; transition:opacity .25s ease;
+  }
+  .card:hover .cap, .card:focus-visible .cap{ opacity:1; }
+
+  .lightbox{
+    position:fixed; inset:0; background:rgba(8,10,11,.94);
+    display:none; align-items:center; justify-content:center; z-index:50;
+    padding:env(safe-area-inset-top,0px) 1rem env(safe-area-inset-bottom,0px);
+  }
+  .lightbox.open{ display:flex; }
+  .lb-inner{ max-width:min(90vw,700px); width:100%; text-align:center; }
+  .lb-inner svg{ width:100%; max-height:65vh; border-radius:6px; }
+  .lb-cap{ font-family:Helvetica,Arial,sans-serif; color:var(--muted); margin-top:.9rem; font-size:.9rem; }
+  .lb-nav{
+    position:fixed; top:50%; transform:translateY(-50%); background:none; border:none;
+    color:var(--ink); font-size:2.2rem; cursor:pointer; padding:.5rem 1rem;
+    font-family:Georgia,serif; line-height:1;
+  }
+  .lb-nav:hover{ color:var(--accent); }
+  .lb-nav:focus-visible{ outline:2px solid var(--accent); }
+  #prev{ left:.5rem; } #next{ right:.5rem; }
+  .lb-close{
+    position:absolute; top:calc(1rem + env(safe-area-inset-top,0px)); right:1rem;
+    background:none; border:1px solid var(--line); color:var(--ink);
+    width:36px; height:36px; border-radius:50%; cursor:pointer; font-size:1.1rem;
+  }
+  .lb-close:hover{ border-color:var(--accent); }
+
+  @media (prefers-color-scheme: light){
+    :root:not([data-theme="dark"]){
+      --bg:#f6f4ef; --panel:#fff; --ink:#20241f; --muted:#5c6660; --line:#ddd6c9;
+    }
+  }
+  :root[data-theme="light"]{
+    --bg:#f6f4ef; --panel:#fff; --ink:#20241f; --muted:#5c6660; --line:#ddd6c9;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Wander</h1>
+  <p>A small collection of places worth stopping for. Tap any frame to look closer.</p>
+</header>
+
+<div class="filters" id="filters"></div>
+<div class="grid" id="grid"></div>
+
+<div class="lightbox" id="lightbox">
+  <button class="lb-close" id="lbClose" aria-label="Close">✕</button>
+  <button class="lb-nav" id="prev" aria-label="Previous">‹</button>
+  <div class="lb-inner">
+    <div id="lbArt"></div>
+    <div class="lb-cap" id="lbCap"></div>
+  </div>
+  <button class="lb-nav" id="next" aria-label="Next">›</button>
+</div>
+
+<script>
+// Photo data with categories
+const photos = [
+  {cat:'coast', title:'Low tide, Kanto shore', colors:['#274b52','#3d7d82','#e8a33d']},
+  {cat:'city', title:'Rooftops after rain', colors:['#1f2430','#4a5568','#e0b04b']},
+  {cat:'forest', title:'Cedar line, morning fog', colors:['#1b2b1f','#3f6b48','#a9c98e']},
+  {cat:'coast', title:'Salt flats at dusk', colors:['#3a2b3d','#8a5a6b','#e8a33d']},
+  {cat:'mountain', title:'Ridge above the clouds', colors:['#26313d','#5a7a94','#eef2f1']},
+  {cat:'city', title:'Market street, dusk lamps', colors:['#2a1f2b','#6b4a5a','#e08a3d']},
+  {cat:'forest', title:'Fern floor, old growth', colors:['#12241a','#2f5136','#7fa869']},
+  {cat:'mountain', title:'Switchback, second pass', colors:['#1c2733','#3d5a70','#c7d6de']},
+  {cat:'coast', title:'Fishing boats, calm water', colors:['#0f2733','#2d6070','#e8c33d']},
+  {cat:'city', title:'Tram wires, blue hour', colors:['#1a1e2b','#3d4a68','#e8a33d']},
+  {cat:'forest', title:'Birch stand, first snow', colors:['#232a2c','#5a6b64','#dfe6e0']},
+  {cat:'mountain', title:'Scree field, noon light', colors:['#2b2620','#6b5a3d','#e8c88a']},
+];
+
+function svgFor(p){
+  const [c1,c2,c3] = p.colors;
+  return `<svg viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
+    <defs><linearGradient id="g${p.title.length}" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="${c1}"/><stop offset="1" stop-color="${c2}"/>
+    </linearGradient></defs>
+    <rect width="400" height="300" fill="url(#g${p.title.length})"/>
+    <circle cx="${60+ (p.title.length*7)%280}" cy="${70+(p.title.length*11)%80}" r="${18+(p.title.length%5)*4}" fill="${c3}" opacity="0.85"/>
+    <path d="M0,220 Q100,${180+(p.title.length%40)} 200,210 T400,200 V300 H0 Z" fill="${c2}" opacity="0.6"/>
+  </svg>`;
+}
+
+const grid = document.getElementById('grid');
+const filtersEl = document.getElementById('filters');
+const cats = ['all', ...new Set(photos.map(p=>p.cat))];
+let active = 'all';
+let current = 0;
+
+function render(){
+  const list = active==='all' ? photos : photos.filter(p=>p.cat===active);
+  grid.innerHTML = list.map((p,i)=>`
+    <div class="card" tabindex="0" data-idx="${i}" role="button" aria-label="Open ${p.title}">
+      ${svgFor(p)}
+      <div class="cap">${p.title}</div>
+    </div>`).join('');
+  grid.querySelectorAll('.card').forEach(card=>{
+    const open = ()=> openLightbox(list, +card.dataset.idx);
+    card.addEventListener('click', open);
+    card.addEventListener('keydown', e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); open(); } });
+  });
+}
+
+filtersEl.innerHTML = cats.map(c=>`<button data-cat="${c}" class="${c===active?'active':''}">${c}</button>`).join('');
+filtersEl.querySelectorAll('button').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    active = btn.dataset.cat;
+    filtersEl.querySelectorAll('button').forEach(b=>b.classList.toggle('active', b===btn));
+    render();
+  });
+});
+
+const lightbox = document.getElementById('lightbox');
+const lbArt = document.getElementById('lbArt');
+const lbCap = document.getElementById('lbCap');
+let currentList = [];
+
+function openLightbox(list, idx){
+  currentList = list; current = idx;
+  showCurrent();
+  lightbox.classList.add('open');
+}
+function showCurrent(){
+  const p = currentList[current];
+  lbArt.innerHTML = svgFor(p);
+  lbCap.textContent = `${p.title} — ${current+1} / ${currentList.length}`;
+}
+document.getElementById('prev').addEventListener('click', ()=>{
+  current = (current-1+currentList.length)%currentList.length; showCurrent();
+});
+document.getElementById('next').addEventListener('click', ()=>{
+  current = (current+1)%currentList.length; showCurrent();
+});
+document.getElementById('lbClose').addEventListener('click', ()=> lightbox.classList.remove('open'));
+lightbox.addEventListener('click', e=>{ if(e.target===lightbox) lightbox.classList.remove('open'); });
+document.addEventListener('keydown', e=>{
+  if(!lightbox.classList.contains('open')) return;
+  if(e.key==='Escape') lightbox.classList.remove('open');
+  if(e.key==='ArrowLeft') document.getElementById('prev').click();
+  if(e.key==='ArrowRight') document.getElementById('next').click();
+});
+
+render();
+</script>
+</body>
+</html>
