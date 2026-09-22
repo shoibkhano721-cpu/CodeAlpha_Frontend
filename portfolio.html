@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Shoib Khan — Frontend Developer Portfolio</title>
+<style>
+  :root{
+    --bg:#0a0e14; --card:#12181f; --ink:#e8ecf1; --muted:#8a96a8;
+    --accent:#00d4ff; --accent-2:#ff6b9d; --success:#00d94f;
+    box-sizing:border-box;
+    padding-top:env(safe-area-inset-top,0px);
+    padding-bottom:env(safe-area-inset-bottom,0px);
+  }
+  html{ 
+    scroll-behavior:smooth; 
+    scroll-padding-top:calc(60px + env(safe-area-inset-top,0px));
+  }
+  *{ box-sizing:border-box; }
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font-family:'Segoe UI', Helvetica, Arial, sans-serif;
+    line-height:1.6;
+  }
+
+  nav{
+    position:fixed; top:0; left:0; right:0; 
+    background:rgba(10, 14, 20, .95); backdrop-filter:blur(8px);
+    border-bottom:1px solid rgba(255,255,255,.05);
+    padding:1rem 2rem; z-index:100;
+    display:flex; justify-content:space-between; align-items:center;
+  }
+  .logo{ font-size:1.3rem; font-weight:700; letter-spacing:2px; color:var(--accent); }
+  .nav-links{
+    display:flex; gap:2rem; list-style:none; margin:0; padding:0;
+  }
+  .nav-links a{
+    color:var(--muted); text-decoration:none; transition:color .3s;
+    font-size:.95rem;
+  }
+  .nav-links a:hover{ color:var(--ink); }
+  .nav-links a.active{ color:var(--accent); border-bottom:2px solid var(--accent); }
+
+  .hero{
+    min-height:100vh; display:flex; align-items:center; justify-content:center;
+    text-align:center; padding:2rem; margin-top:60px;
+    background:linear-gradient(135deg, rgba(0,212,255,.1), rgba(255,107,157,.05));
+  }
+  .hero-content h1{
+    font-size:3.5rem; margin:0 0 1rem; font-weight:700;
+    background:linear-gradient(135deg, var(--accent), var(--accent-2));
+    -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+    background-clip:text;
+  }
+  .hero-content p{
+    font-size:1.3rem; color:var(--muted); margin:0 0 2rem; max-width:600px;
+  }
+  .cta-btn{
+    display:inline-block; padding:1rem 2.5rem; background:var(--accent);
+    color:var(--bg); text-decoration:none; border-radius:8px;
+    font-weight:600; transition:all .3s;
+    border:2px solid var(--accent);
+  }
+  .cta-btn:hover{
+    transform:translateY(-3px); box-shadow:0 10px 30px rgba(0,212,255,.3);
+  }
+  .cta-btn-secondary{
+    background:transparent; color:var(--accent); margin-left:1rem;
+  }
+  .cta-btn-secondary:hover{ background:rgba(0,212,255,.1); }
+
+  section{
+    padding:5rem 2rem; max-width:1200px; margin:0 auto;
+  }
+  h2{
+    font-size:2.5rem; margin:0 0 2rem; color:var(--ink);
+    border-bottom:3px solid var(--accent); padding-bottom:1rem;
+    display:inline-block;
+  }
+
+  .about-grid{
+    display:grid; grid-template-columns:1fr 1fr; gap:3rem; align-items:center;
+  }
+  .about-text p{ color:var(--muted); font-size:1rem; margin:0 0 1rem; }
+  .about-avatar{
+    width:250px; height:250px; border-radius:50%;
+    background:linear-gradient(135deg, var(--accent), var(--accent-2));
+    display:flex; align-items:center; justify-content:center;
+    font-size:5rem;
+  }
+
+  .skills-grid{
+    display:grid; grid-template-columns:repeat(auto-fit, minmax(150px, 1fr)); gap:1.5rem;
+  }
+  .skill-card{
+    background:var(--card); padding:1.5rem; border-radius:10px;
+    border:1px solid rgba(255,255,255,.1); text-align:center;
+    transition:all .3s;
+  }
+  .skill-card:hover{
+    transform:translateY(-5px); border-color:var(--accent);
+    box-shadow:0 10px 30px rgba(0,212,255,.15);
+  }
+  .skill-card h3{ margin:0; color:var(--accent); font-size:1.1rem; }
+  .skill-card p{ margin:0.5rem 0 0; color:var(--muted); font-size:.85rem; }
+
+  .projects-grid{
+    display:grid; grid-template-columns:repeat(auto-fit, minmax(300px, 1fr)); gap:2rem;
+  }
+  .project-card{
+    background:var(--card); border-radius:10px; overflow:hidden;
+    border:1px solid rgba(255,255,255,.1); transition:all .3s;
+  }
+  .project-card:hover{
+    transform:translateY(-8px); 
+    box-shadow:0 15px 40px rgba(0,212,255,.2);
+    border-color:var(--accent);
+  }
+  .project-header{
+    background:linear-gradient(135deg, rgba(0,212,255,.1), rgba(255,107,157,.1));
+    padding:2rem; text-align:center; font-size:3rem;
+  }
+  .project-card h3{ 
+    margin:1.5rem 1.5rem 0; color:var(--ink); font-size:1.3rem;
+  }
+  .project-card p{
+    margin:0.5rem 1.5rem; color:var(--muted); font-size:.95rem;
+  }
+  .project-tags{
+    display:flex; gap:0.5rem; flex-wrap:wrap; margin:1rem 1.5rem;
+  }
+  .tag{
+    background:rgba(0,212,255,.1); color:var(--accent);
+    padding:0.3rem 0.8rem; border-radius:20px; font-size:.75rem;
+  }
+  .project-link{
+    display:inline-block; margin:1rem 1.5rem 1.5rem;
+    color:var(--accent); text-decoration:none; font-weight:600;
+    transition:all .3s;
+  }
+  .project-link:hover{ transform:translateX(5px); }
+
+  .contact-content{
+    display:grid; grid-template-columns:1fr 1fr; gap:3rem; align-items:center;
+  }
+  .contact-info p{
+    color:var(--muted); margin:1rem 0; font-size:1rem;
+  }
+  .contact-info strong{ color:var(--ink); }
+  .social-links{
+    display:flex; gap:1rem; margin-top:2rem;
+  }
+  .social-links a{
+    width:45px; height:45px; border-radius:50%;
+    background:var(--card); border:2px solid var(--accent);
+    display:flex; align-items:center; justify-content:center;
+    color:var(--accent); text-decoration:none; transition:all .3s;
+    font-size:1.2rem;
+  }
+  .social-links a:hover{
+    background:var(--accent); color:var(--bg);
+    transform:translateY(-5px);
+  }
+
+  .contact-form{
+    background:var(--card); padding:2rem; border-radius:10px;
+    border:1px solid rgba(255,255,255,.1);
+  }
+  .form-group{
+    margin-bottom:1.5rem;
+  }
+  .form-group label{
+    display:block; margin-bottom:0.5rem; color:var(--ink); font-weight:500;
+  }
+  .form-group input, .form-group textarea{
+    width:100%; padding:0.8rem; background:rgba(0,0,0,.3);
+    border:1px solid rgba(255,255,255,.1); border-radius:6px;
+    color:var(--ink); font-family:inherit;
+    transition:border-color .3s;
+  }
+  .form-group input:focus, .form-group textarea:focus{
+    outline:none; border-color:var(--accent);
+  }
+  .submit-btn{
+    width:100%; padding:1rem; background:var(--accent); color:var(--bg);
+    border:none; border-radius:6px; font-weight:600; cursor:pointer;
+    transition:all .3s;
+  }
+  .submit-btn:hover{
+    transform:translateY(-2px); box-shadow:0 10px 25px rgba(0,212,255,.3);
+  }
+
+  footer{
+    text-align:center; padding:2rem; color:var(--muted);
+    border-top:1px solid rgba(255,255,255,.05);
+  }
+
+  @media (max-width:768px){
+    nav{ flex-direction:column; gap:1rem; }
+    .nav-links{ flex-direction:column; gap:1rem; }
+    .hero-content h1{ font-size:2.2rem; }
+    .hero-content p{ font-size:1rem; }
+    .about-grid{ grid-template-columns:1fr; }
+    .about-avatar{ width:200px; height:200px; }
+    .contact-content{ grid-template-columns:1fr; }
+    h2{ font-size:1.8rem; }
+    .cta-btn-secondary{ margin-left:0; margin-top:1rem; display:block; }
+  }
+
+  @media (prefers-color-scheme: light){
+    :root:not([data-theme="dark"]){
+      --bg:#f5f7fa; --card:#fff; --ink:#1a1f2e; --muted:#666;
+    }
+  }
+</style>
+</head>
+<body>
+
+<!-- Navigation -->
+<nav>
+  <div class="logo">SHOIB.</div>
+  <ul class="nav-links">
+    <li><a href="#hero" class="active">Home</a></li>
+    <li><a href="#about">About</a></li>
+    <li><a href="#skills">Skills</a></li>
+    <li><a href="#projects">Projects</a></li>
+    <li><a href="#contact">Contact</a></li>
+  </ul>
+</nav>
+
+<!-- Hero Section -->
+<section class="hero" id="hero">
+  <div class="hero-content">
+    <h1>Hi, I'm Shoib Khan</h1>
+    <p>Frontend Developer | Web Designer | Code Enthusiast</p>
+    <a href="#projects" class="cta-btn">View My Work</a>
+    <a href="#contact" class="cta-btn cta-btn-secondary">Get In Touch</a>
+  </div>
+</section>
+
+<!-- About Section -->
+<section id="about">
+  <h2>About Me</h2>
+  <div class="about-grid">
+    <div class="about-avatar">👨‍💻</div>
+    <div class="about-text">
+      <p>Passionate coder interested in web development with a strong foundation in frontend technologies. I specialize in creating responsive, user-friendly web applications that combine beautiful design with clean, functional code.</p>
+      <p>I'm currently exploring modern web development frameworks like React and continuously learning new technologies to stay updated with industry trends. My goal is to build scalable and performant web applications that provide great user experiences.</p>
+      <p>I believe in the power of clean code, problem-solving, and continuous learning. When I'm not coding, I enjoy contributing to open-source projects and staying updated with the latest web development trends and best practices.</p>
+    </div>
+  </div>
+</section>
+
+<!-- Skills Section -->
+<section id="skills">
+  <h2>Technical Skills</h2>
+  <div class="skills-grid">
+    <div class="skill-card">
+      <h3>HTML5</h3>
+      <p>Semantic markup</p>
+    </div>
+    <div class="skill-card">
+      <h3>CSS3</h3>
+      <p>Responsive design</p>
+    </div>
+    <div class="skill-card">
+      <h3>JavaScript</h3>
+      <p>DOM manipulation</p>
+    </div>
+    <div class="skill-card">
+      <h3>React</h3>
+      <p>Component library</p>
+    </div>
+    <div class="skill-card">
+      <h3>Git</h3>
+      <p>Version control</p>
+    </div>
+    <div class="skill-card">
+      <h3>Python</h3>
+      <p>Backend basics</p>
+    </div>
+  </div>
+</section>
+
+<!-- Projects Section -->
+<section id="projects">
+  <h2>Projects</h2>
+  <div class="projects-grid">
+    <div class="project-card">
+      <div class="project-header">🖼️</div>
+      <h3>Image Gallery</h3>
+      <p>Responsive image gallery with lightbox modal, category filtering, smooth animations, and keyboard navigation.</p>
+      <div class="project-tags">
+        <span class="tag">HTML5</span>
+        <span class="tag">CSS3</span>
+        <span class="tag">JavaScript</span>
+      </div>
+      <a href="https://github.com/shoibkhano721-cpu/CodeAlpha_Frontend" class="project-link">View Code →</a>
+    </div>
+
+    <div class="project-card">
+      <div class="project-header">🧮</div>
+      <h3>Calculator App</h3>
+      <p>Fully functional calculator with all arithmetic operations, keyboard support, decimal handling, and modern UI design with dark theme.</p>
+      <div class="project-tags">
+        <span class="tag">HTML5</span>
+        <span class="tag">CSS3</span>
+        <span class="tag">JavaScript</span>
+      </div>
+      <a href="https://github.com/shoibkhano721-cpu/CodeAlpha_Frontend" class="project-link">View Code →</a>
+    </div>
+
+    <div class="project-card">
+      <div class="project-header">🎨</div>
+      <h3>Portfolio Website</h3>
+      <p>Personal portfolio website showcasing projects, skills, and contact information with smooth scrolling, animations, and responsive design.</p>
+      <div class="project-tags">
+        <span class="tag">HTML5</span>
+        <span class="tag">CSS3</span>
+        <span class="tag">JavaScript</span>
+      </div>
+      <a href="https://github.com/shoibkhano721-cpu/CodeAlpha_Frontend" class="project-link">View Code →</a>
+    </div>
+  </div>
+</section>
+
+<!-- Contact Section -->
+<section id="contact">
+  <h2>Get In Touch</h2>
+  <div class="contact-content">
+    <div class="contact-info">
+      <h3>Let's Connect</h3>
+      <p><strong>Email:</strong> shoibkhano721@gmail.com</p>
+      <p><strong>Phone:</strong> +91 7217282204</p>
+      <p><strong>Location:</strong> India</p>
+      <p>I'd love to hear from you! Whether you have a project in mind, want to collaborate, or just want to say hello, feel free to reach out. I'm always open to discussing new opportunities.</p>
+      <div class="social-links">
+        <a href="https://github.com/shoibkhano721-cpu/CodeAlpha_Frontend" title="GitHub">🐙</a>
+        <a href="https://www.linkedin.com/in/shoib-khan-7517ba437" title="LinkedIn">💼</a>
+        <a href="https://twitter.com" title="Twitter">𝕏</a>
+        <a href="https://instagram.com" title="Instagram">📷</a>
+      </div>
+    </div>
+
+    <form class="contact-form" onsubmit="handleSubmit(event)">
+      <div class="form-group">
+        <label for="name">Your Name</label>
+        <input type="text" id="name" name="name" required placeholder="Your Name">
+      </div>
+      <div class="form-group">
+        <label for="email">Email Address</label>
+        <input type="email" id="email" name="email" required placeholder="your@email.com">
+      </div>
+      <div class="form-group">
+        <label for="message">Message</label>
+        <textarea id="message" name="message" rows="5" required placeholder="Your message here..."></textarea>
+      </div>
+      <button type="submit" class="submit-btn">Send Message</button>
+    </form>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer>
+  <p>&copy; 2026 Shoib Khan. All rights reserved. | Built with HTML5, CSS3 & JavaScript | CodeAlpha Internship</p>
+</footer>
+
+<script>
+// Smooth navbar active state
+document.querySelectorAll('.nav-links a').forEach(link => {
+  link.addEventListener('click', function() {
+    document.querySelectorAll('.nav-links a').forEach(l => l.classList.remove('active'));
+    this.classList.add('active');
+  });
+});
+
+window.addEventListener('scroll', () => {
+  let current = '';
+  const sections = document.querySelectorAll('section');
+  sections.forEach(section => {
+    const sectionTop = section.offsetTop;
+    if (pageYOffset >= sectionTop - 200) {
+      current = section.getAttribute('id');
+    }
+  });
+  document.querySelectorAll('.nav-links a').forEach(link => {
+    link.classList.remove('active');
+    if (link.getAttribute('href').slice(1) === current) {
+      link.classList.add('active');
+    }
+  });
+});
+
+// Form submission
+function handleSubmit(e) {
+  e.preventDefault();
+  const name = document.getElementById('name').value;
+  
+  alert(`Thank you, ${name}! I've received your message and will get back to you soon at shoibkhano721@gmail.com`);
+  
+  document.querySelector('.contact-form').reset();
+}
+
+// Intersection Observer for fade-in animations
+const observerOptions = {
+  threshold: 0.1,
+  rootMargin: '0px 0px -100px 0px'
+};
+
+const observer = new IntersectionObserver(function(entries) {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.style.opacity = '1';
+      entry.target.style.transform = 'translateY(0)';
+    }
+  });
+}, observerOptions);
+
+document.querySelectorAll('section').forEach(section => {
+  section.style.opacity = '0';
+  section.style.transform = 'translateY(20px)';
+  section.style.transition = 'all 0.6s ease';
+  observer.observe(section);
+});
+</script>
+</body>
+</html>
