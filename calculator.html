@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Calculate — Simple Math</title>
+<style>
+  :root{
+    --bg:#0f1419; --card:#1a1f28; --ink:#f1f4f6; --muted:#8a96a4;
+    --primary:#4a9eff; --accent:#ff6b6b; --success:#51cf66; --warn:#ffa94d;
+    box-sizing:border-box;
+    padding-top:env(safe-area-inset-top,0px);
+    padding-bottom:env(safe-area-inset-bottom,0px);
+  }
+  html{ scroll-padding-top:env(safe-area-inset-top,0px); }
+  *{ box-sizing:border-box; }
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font-family:Helvetica, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    display:flex; align-items:center; justify-content:center;
+    min-height:100vh; padding:1rem;
+  }
+  
+  .calc{
+    background:var(--card); border-radius:14px; padding:1.2rem; width:100%;
+    max-width:340px; box-shadow:0 12px 48px rgba(0,0,0,.4);
+  }
+  
+  .header{
+    text-align:center; margin-bottom:1.2rem;
+  }
+  .header h1{
+    font-size:1.4rem; margin:0; font-weight:500; letter-spacing:0.5px;
+  }
+  .header p{
+    color:var(--muted); margin:0.3rem 0 0; font-size:0.85rem;
+  }
+  
+  .display{
+    background:rgba(0,0,0,.3); border:1px solid rgba(255,255,255,.08);
+    border-radius:8px; padding:1rem; margin-bottom:1.2rem; text-align:right;
+  }
+  
+  .screen{
+    font-size:1.2rem; color:var(--muted); min-height:1.8rem; line-height:1.8;
+    margin-bottom:0.5rem; word-wrap:break-word; word-break:break-all;
+  }
+  
+  .result{
+    font-size:2.2rem; color:var(--ink); font-weight:500; line-height:1;
+    min-height:2.5rem; display:flex; align-items:flex-end; justify-content:flex-end;
+  }
+  
+  .buttons{
+    display:grid; grid-template-columns:repeat(4, 1fr); gap:0.6rem;
+  }
+  
+  button{
+    padding:1rem; border:1px solid rgba(255,255,255,.1); border-radius:8px;
+    background:rgba(255,255,255,.04); color:var(--ink); font-size:1.1rem;
+    cursor:pointer; font-weight:500; transition:all 0.15s ease;
+    font-family:Helvetica, sans-serif;
+  }
+  
+  button:hover{
+    background:rgba(255,255,255,.08); border-color:rgba(255,255,255,.15);
+  }
+  
+  button:active{
+    transform:scale(0.96);
+  }
+  
+  button:focus-visible{
+    outline:2px solid var(--primary); outline-offset:2px;
+  }
+  
+  .num{ color:var(--ink); }
+  .op{ color:var(--primary); }
+  .op:hover{ background:rgba(74, 158, 255, .15); }
+  .clear{ color:var(--accent); }
+  .clear:hover{ background:rgba(255, 107, 107, .15); }
+  .equals{ color:#fff; background:linear-gradient(135deg, var(--primary), var(--success)); border:none; }
+  .equals:hover{ opacity:0.9; }
+  
+  @media (max-width:400px){
+    .calc{ max-width:100%; }
+    .result{ font-size:1.8rem; }
+    button{ font-size:1rem; padding:0.9rem; }
+  }
+  
+  @media (prefers-color-scheme: light){
+    :root:not([data-theme="dark"]){
+      --bg:#f8f9fb; --card:#fff; --ink:#1a1f2e; --muted:#6b7684;
+    }
+  }
+  :root[data-theme="light"]{
+    --bg:#f8f9fb; --card:#fff; --ink:#1a1f2e; --muted:#6b7684;
+  }
+</style>
+</head>
+<body>
+
+<div class="calc">
+  <div class="header">
+    <h1>Calculate</h1>
+    <p>Simple math, cleaner interface</p>
+  </div>
+  
+  <div class="display">
+    <div class="screen" id="screen"></div>
+    <div class="result" id="result">0</div>
+  </div>
+  
+  <div class="buttons">
+    <button class="clear" onclick="clearCalc()">C</button>
+    <button class="clear" onclick="deleteLast()">⌫</button>
+    <button class="op" onclick="chooseOp('/')" title="divide">÷</button>
+    <button class="op" onclick="chooseOp('*')" title="multiply">×</button>
+    
+    <button class="num" onclick="appendNum('7')">7</button>
+    <button class="num" onclick="appendNum('8')">8</button>
+    <button class="num" onclick="appendNum('9')">9</button>
+    <button class="op" onclick="chooseOp('-')" title="subtract">−</button>
+    
+    <button class="num" onclick="appendNum('4')">4</button>
+    <button class="num" onclick="appendNum('5')">5</button>
+    <button class="num" onclick="appendNum('6')">6</button>
+    <button class="op" onclick="chooseOp('+')" title="add">+</button>
+    
+    <button class="num" onclick="appendNum('1')">1</button>
+    <button class="num" onclick="appendNum('2')">2</button>
+    <button class="num" onclick="appendNum('3')">3</button>
+    <button class="op" onclick="toggleSign()" title="toggle sign">±</button>
+    
+    <button class="num" onclick="appendNum('0')" style="grid-column:span 2;">0</button>
+    <button class="num" onclick="appendNum('.')">.</button>
+    <button class="equals" onclick="compute()" style="grid-column:span 1;">=</button>
+  </div>
+</div>
+
+<script>
+let curr = '0';
+let prev = '';
+let op = null;
+let shouldReset = false;
+
+const resultEl = document.getElementById('result');
+const screenEl = document.getElementById('screen');
+
+function updateDisplay(){
+  resultEl.textContent = curr;
+  if(op && prev){
+    screenEl.textContent = `${prev} ${op === '*' ? '×' : op === '/' ? '÷' : op === '-' ? '−' : op} `;
+  } else {
+    screenEl.textContent = '';
+  }
+}
+
+function appendNum(n){
+  if(shouldReset){ curr = n; shouldReset = false; }
+  else {
+    if(n === '.' && curr.includes('.')) return;
+    if(curr === '0' && n !== '.') curr = n;
+    else curr += n;
+  }
+  updateDisplay();
+}
+
+function chooseOp(o){
+  if(curr === '' && !prev) return;
+  if(prev && op && curr){
+    const res = calc(parseFloat(prev), parseFloat(curr), op);
+    curr = String(res === Infinity || isNaN(res) ? 0 : res);
+  }
+  prev = curr;
+  op = o;
+  shouldReset = true;
+  updateDisplay();
+}
+
+function calc(a, b, operation){
+  switch(operation){
+    case '+': return a + b;
+    case '-': return a - b;
+    case '*': return a * b;
+    case '/': return b !== 0 ? a / b : Infinity;
+    default: return b;
+  }
+}
+
+function compute(){
+  if(!op || !prev || curr === '') return;
+  const res = calc(parseFloat(prev), parseFloat(curr), op);
+  curr = String(res === Infinity ? 0 : Math.round(res * 100000) / 100000);
+  prev = '';
+  op = null;
+  shouldReset = true;
+  updateDisplay();
+}
+
+function clearCalc(){
+  curr = '0';
+  prev = '';
+  op = null;
+  shouldReset = false;
+  updateDisplay();
+}
+
+function deleteLast(){
+  if(curr.length <= 1) curr = '0';
+  else curr = curr.slice(0, -1);
+  updateDisplay();
+}
+
+function toggleSign(){
+  const n = parseFloat(curr);
+  curr = String(n === 0 ? 0 : -n);
+  updateDisplay();
+}
+
+// Keyboard Support
+document.addEventListener('keydown', e=>{
+  const k = e.key;
+  if(/^[0-9.]$/.test(k)){ e.preventDefault(); appendNum(k); }
+  if(k === '+' || k === '-'){ e.preventDefault(); chooseOp(k); }
+  if(k === '*'){ e.preventDefault(); chooseOp('*'); }
+  if(k === '/'){ e.preventDefault(); chooseOp('/'); }
+  if(k === 'Enter' || k === '='){ e.preventDefault(); compute(); }
+  if(k === 'Backspace'){ e.preventDefault(); deleteLast(); }
+  if(k === 'Escape'){ e.preventDefault(); clearCalc(); }
+});
+
+updateDisplay();
+</script>
+</body>
+</html>
